@@ -6,14 +6,20 @@ class FileReporter {
         createReport(filesOrdered);
     }
 
-    String createReport(Map<String, List<String>> stringListMap) {
-        null
+    String createReport(Map<String, Reporter> stringListMap) {
+        def messageFinal = []
+        stringListMap.forEach{ key, value ->
+            StringBuilder message = new StringBuilder(key)
+            message.append(":")
+            message.append(value.getReport())
+            messageFinal.add(message.toString())
+        }
+        return "{"+String.join(",", messageFinal)+"}"
     }
 
     Map<String,Reporter> separateAndOrderThem(List<File> files) {
         WrappersContainer container = WrappersContainer.create(files.collect {FileWrapper.create(it)})
-        Map<String,List<String>> separateAndOrderThem  = container.separateThem().orderThem()
-        separateAndOrderThem
+        return container.orderThem()
     }
 
 

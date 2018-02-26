@@ -1,12 +1,9 @@
-import java.util.stream.Collectors
-import java.util.stream.Stream
-
 class WrappersContainer {
     List<FileWrapper> fileWrappers
-    Stream<FileWrapper> others
-    List<String> notReadble
-    Stream<FileWrapper> leftGuys
-    Stream<FileWrapper> rightGuys
+    List<FileWrapper> rights
+    List<FileWrapper> lefts
+    List<String> rightsNotExistsOnLefts
+    List<String> leftsNotExistsOnRights
 
     static WrappersContainer create(List<FileWrapper> fileWrappers) {
         WrappersContainer container = new WrappersContainer();
@@ -14,38 +11,23 @@ class WrappersContainer {
         container
     }
 
-    def separateThem() {
-        others = getOthers()
-        /**def electables = getElectables()
-        notReadble = getCorruptNames()
-        leftGuys = electables.filter {!it.isRight}
-        rightGuys = electables.filter {it.isRight}*/
-        this
-    }
-
-
-
-    private Stream<FileWrapper> getElectables() {
-        fileWrappers.stream().filter { it.isElectable && it.isReadable}
-    }
-
-    def orderThem(LinkedHashMap<String, List<String>> map) {
-        def leftExistingIntoRight = leftGuys.collect {it.code}.stream().filter(rightGuys.collect{it.code})
-        def rightExistingIntoLeft = rightGuys.collect {it.code}.stream().filter(leftGuys.collect{it.code})
-
-        map.put('correct', getCorrect())
-        map.put('different', getDifferent())
-        map.put('alone', getDifferent())
-
-
-    }
 
     def orderThem() {
         LinkedHashMap<String, Reporter> map = [:]
         map.put('others', getOthers())
         map.put('corrupts', getCorruptNames())
+
+        separateElectablesLeftFromRights()
         map.put('alone', getAlones())
+        map.put('different', getDiferents())
+        map.put('correct', getCorrects())
         map
+    }
+
+    def separateElectablesLeftFromRights() {
+        rights = fileWrappers.stream().filter { it.isRight && it.isElectable }.collect()
+        lefts = fileWrappers.stream().filter { !it.isRight && it.isElectable }.collect()
+
     }
 
     protected Reporter getOthers() {
@@ -60,10 +42,43 @@ class WrappersContainer {
     }
 
     protected Reporter getAlones() {
-        List<FileWrapper> rights = fileWrappers.stream().filter { it.isRight }.collect()
-        List<FileWrapper> lefts = fileWrappers.stream().filter { !it.isRight & it.isElectable }.collect()
-        def rightsNotExistsOnLefts = rights.stream().filter{!lefts.collect{it.code}.contains(it.code)}.collect{it.code}
-        def leftsNotExistsOnRights = lefts.stream().filter{!rights.collect{it.code}.contains(it.code)}.collect{it.code}
+        completeDifferences()
         return [getReport:{ "[left:["+String.join(",", leftsNotExistsOnRights) + "], right:["+ String.join(",", rightsNotExistsOnLefts)+"]]"}] as Reporter
+    }
+
+    protected Reporter getDiferents() {
+        completeDifferences()
+        def content = checkAreDifferent(existsInBoth(),{wrapper ->lefts.find {it.code.equals(wrapper.code)}
+                .isDifferent(
+                rights.find {it.code.equals(wrapper.code)})})
+        return prepareCommonReport(content)
+    }
+
+    protected Reporter getCorrects() {
+        completeDifferences()
+        def content = checkAreDifferent(existsInBoth(),{wrapper -> ! lefts.find {it.code.equals(wrapper.code)}
+                .isDifferent(
+                rights.find {it.code.equals(wrapper.code)})})
+        return prepareCommonReport(content)
+    }
+
+    private Reporter prepareCommonReport(content) {
+        [getReport: { "[" + String.join(",", content) + "]" }] as Reporter
+    }
+
+    List<FileWrapper> existsInBoth() {
+        return lefts.stream().filter{!leftsNotExistsOnRights.contains(it.code)}.collect()
+    }
+
+    List<String> checkAreDifferent(List<FileWrapper> existInBoth, condition) {
+        return  existInBoth
+                    .stream()
+                    .filter{ condition(it)}
+                    .collect{it.code}
+    }
+
+    private completeDifferences(){
+        rightsNotExistsOnLefts = rights.stream().filter{!lefts.collect{it.code}.contains(it.code)}.collect{it.code}
+        leftsNotExistsOnRights = lefts.stream().filter{!rights.collect{it.code}.contains(it.code)}.collect{it.code}
     }
 }

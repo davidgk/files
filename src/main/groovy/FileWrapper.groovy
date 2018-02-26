@@ -15,12 +15,19 @@ class FileWrapper {
 
     def analize() {
         String nameFile = this.file.name;
-        isElectableFileName(nameFile)
-
+        String regex = "^(right|left)_\\d+.png\$"
+        this.isElectable = nameFile.matches(regex)
+        if (isElectable) {
+            def name = nameFile.split("_")
+            this.isRight ="right".equals(name[0])
+            this.code = name[1].split("\\.")[0];
+        }
+        this.isReadable = isReadableFile()
+        this.isElectable &=this.isReadable
     }
 
 
-    def isReadableFile() {
+    private isReadableFile() {
         if (!file.exists())
             return false
         if (!file.canRead())
@@ -35,14 +42,9 @@ class FileWrapper {
         return true
     }
 
-    def isElectableFileName(String nameFile) {
-        String regex = "^(right|left)_\\d+.png\$"
-        this.isElectable = nameFile.matches(regex)
-        if (isElectable) {
-            def name = nameFile.split("_")
-            this.isRight ="right".equals(name[0])
-            this.code = name[1].split("\\.")[0];
-        }
-        this.isReadable = isReadableFile()
+    def isDifferent(FileWrapper wrapper){
+        def internal = file.length()
+        def external = wrapper.file.length()
+        return (internal != external)
     }
 }

@@ -8,7 +8,7 @@ class FileReporterTest extends Specification {
         when:
             String report =  new FileReporter().report(path)
         then:
-            report.equals("{correct:['001'], different:['002'], alone:[left:['003'], right:['004']], others:['foo.txt'], corrupt:['005']}")
+            report.equals("{others:[foo.txt],corrupts:[],alone:[left:[003], right:[004]],different:[002],correct:[001,005]}")
     }
 
     def "CreateReport"() {
@@ -17,12 +17,16 @@ class FileReporterTest extends Specification {
 
     def "SeparateAndOrderThem for Correct pair"() {
         given:
-            List<File> filesFromList = [new File("./src/test/resources/left_001.png"), new File("./src/test/resources/right_002.png")]
+            List<File> filesFromList =  new FileReporter().getFilesFromList("./src/test/resources")
         when :
-            Map<String,List<String>> map =  new FileReporter().separateAndOrderThem(filesFromList);
+            Map<String,Reporter> map =  new FileReporter().separateAndOrderThem(filesFromList);
         then:
-            map.get('correct').size() == 1
-            map.get('correct')[0].equals('001')
+            map.get('others').getReport().equals('[foo.txt]')
+            map.get('corrupts').getReport().equals('[]')
+            map.get('alone').getReport().equals('[left:[003], right:[004]]')
+            map.get('different').getReport().equals('[002]')
+            map.get('correct').getReport().equals('[001,005]')
+
     }
 
     def "GetFilesFromList for a bunch"() {
