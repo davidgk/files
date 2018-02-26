@@ -11,7 +11,6 @@ class WrappersContainer {
         container
     }
 
-
     def orderThem() {
         LinkedHashMap<String, Reporter> map = [:]
         map.put('others', getOthers())
@@ -27,6 +26,8 @@ class WrappersContainer {
     def separateElectablesLeftFromRights() {
         rights = fileWrappers.stream().filter { it.isRight && it.isElectable }.collect()
         lefts = fileWrappers.stream().filter { !it.isRight && it.isElectable }.collect()
+        rightsNotExistsOnLefts = rights.stream().filter{!lefts.collect{it.code}.contains(it.code)}.collect{it.code}
+        leftsNotExistsOnRights = lefts.stream().filter{!rights.collect{it.code}.contains(it.code)}.collect{it.code}
 
     }
 
@@ -42,12 +43,10 @@ class WrappersContainer {
     }
 
     protected Reporter getAlones() {
-        completeDifferences()
         return [getReport:{ "[left:["+String.join(",", leftsNotExistsOnRights) + "], right:["+ String.join(",", rightsNotExistsOnLefts)+"]]"}] as Reporter
     }
 
     protected Reporter getDiferents() {
-        completeDifferences()
         def content = checkAreDifferent(existsInBoth(),{wrapper ->lefts.find {it.code.equals(wrapper.code)}
                 .isDifferent(
                 rights.find {it.code.equals(wrapper.code)})})
@@ -55,7 +54,6 @@ class WrappersContainer {
     }
 
     protected Reporter getCorrects() {
-        completeDifferences()
         def content = checkAreDifferent(existsInBoth(),{wrapper -> ! lefts.find {it.code.equals(wrapper.code)}
                 .isDifferent(
                 rights.find {it.code.equals(wrapper.code)})})
@@ -77,8 +75,5 @@ class WrappersContainer {
                     .collect{it.code}
     }
 
-    private completeDifferences(){
-        rightsNotExistsOnLefts = rights.stream().filter{!lefts.collect{it.code}.contains(it.code)}.collect{it.code}
-        leftsNotExistsOnRights = lefts.stream().filter{!rights.collect{it.code}.contains(it.code)}.collect{it.code}
-    }
+
 }
