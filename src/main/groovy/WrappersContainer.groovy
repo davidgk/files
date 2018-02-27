@@ -13,12 +13,11 @@ class WrappersContainer {
 
     def orderThem() {
         LinkedHashMap<String, Reporter> map = [:]
-        map.put('others', getOthers())
-        map.put('corrupts', getCorruptNames())
+        map.put('ignored', getIgnored())
+        map.put('failed_pairs', getFailedPairs())
 
         separateElectablesLeftFromRights()
         map.put('alone', getAlones())
-        map.put('different', getDiferents())
         map.put('correct', getCorrects())
         map
     }
@@ -31,26 +30,32 @@ class WrappersContainer {
 
     }
 
-    protected Reporter getOthers() {
+    protected Reporter getIgnored() {
         def result = fileWrappers.stream().filter { !it.isElectable }.collect { it.file.name }
         return [getReport:{ "["+String.join(",",result)+"]"}] as Reporter
 
     }
 
-    protected Reporter getCorruptNames() {
-        def result = fileWrappers.stream().filter { !it.isReadable }.collect { it.file.name }
-        return [getReport:{ "["+String.join(",",result)+"]"}] as Reporter
+    protected Reporter getFailedPairs() {
+        def errorForSizeMisMatch = getErrorForSizeDifferences()
+        def errorForCorrupt = getErrorForCannotRead()
+        return [getReport:{ "{"+errorForSizeMisMatch+","+errorForCorrupt+"}"}] as Reporter
+    }
+
+    def getErrorForSizeDifferences() {
+        List<FileWrapper> content = checkAreDifferent(existsInBoth(),{wrapper ->lefts.find {it.code.equals(wrapper.code)}
+                .isDifferent(
+                rights.find {it.code.equals(wrapper.code)})})
+        return prepareCommonErrorReport(content, "size mismatch")
+    }
+
+    def getErrorForCannotRead() {
+        def result = fileWrappers.stream().filter { !it.isReadable }.collect { it.code }
+        return prepareCommonErrorReport(result, "cannot read")
     }
 
     protected Reporter getAlones() {
         return [getReport:{ "[left:["+String.join(",", leftsNotExistsOnRights) + "], right:["+ String.join(",", rightsNotExistsOnLefts)+"]]"}] as Reporter
-    }
-
-    protected Reporter getDiferents() {
-        def content = checkAreDifferent(existsInBoth(),{wrapper ->lefts.find {it.code.equals(wrapper.code)}
-                .isDifferent(
-                rights.find {it.code.equals(wrapper.code)})})
-        return prepareCommonReport(content)
     }
 
     protected Reporter getCorrects() {
@@ -58,6 +63,21 @@ class WrappersContainer {
                 .isDifferent(
                 rights.find {it.code.equals(wrapper.code)})})
         return prepareCommonReport(content)
+    }
+
+    private String prepareCommonErrorReport(List<FileWrapper> content, message) {
+        def codes = content.collect{"${it.code}-.${it.kind}"}
+        return "[error: '"+message+"'" +
+                ", left: ["+ prepareFileName( codes, "left")+"],"+
+                "right: ["+prepareFileName( codes, "right")+"]]"
+    }
+
+    def prepareFileName( List<String> codes, String fileHandType) {
+        return String.join(','
+                , codes.collect{
+                    String[] vals = it.split("-")
+                    return "${fileHandType}_${vals[0].$(vals[1])}"
+                })
     }
 
     private Reporter prepareCommonReport(content) {
@@ -68,11 +88,11 @@ class WrappersContainer {
         return lefts.stream().filter{!leftsNotExistsOnRights.contains(it.code)}.collect()
     }
 
-    List<String> checkAreDifferent(List<FileWrapper> existInBoth, condition) {
+    List<FileWrapper> checkAreDifferent(List<FileWrapper> existInBoth, condition) {
         return  existInBoth
                     .stream()
                     .filter{ condition(it)}
-                    .collect{it.code}
+                    .collect()
     }
 
 

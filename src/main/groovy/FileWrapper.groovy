@@ -1,9 +1,15 @@
+import javax.imageio.ImageIO
+import java.awt.image.BufferedImage
+
 class FileWrapper {
     File file
     boolean isElectable;
     boolean isRight;
     boolean isReadable;
     String code
+    String kind
+    int width
+    int height
 
 
     static FileWrapper create(File file) {
@@ -20,12 +26,19 @@ class FileWrapper {
         if (isElectable) {
             def name = nameFile.split("_")
             this.isRight ="right".equals(name[0])
-            this.code = name[1].split("\\.")[0];
+            def codeAndKind = name[1].split("\\.")
+            this.code = codeAndKind[0];
+            this.kind = codeAndKind[1];
+            this.isReadable = isReadableFile()
+            configureDimentions()
         }
-        this.isReadable = isReadableFile()
-        this.isElectable &=this.isReadable
     }
 
+    def configureDimentions() {
+        BufferedImage bimg = ImageIO.read(this.file)
+        this.width          = bimg.getWidth()
+        this.height         = bimg.getHeight()
+    }
 
     private isReadableFile() {
         if (!file.exists())
@@ -43,8 +56,6 @@ class FileWrapper {
     }
 
     def isDifferent(FileWrapper wrapper){
-        def internal = file.length()
-        def external = wrapper.file.length()
-        return (internal != external)
+        return ((this.width != wrapper.width) != (this.height != wrapper.height))
     }
 }

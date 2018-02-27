@@ -8,11 +8,11 @@ class FileReporterTest extends Specification {
         when:
             String report =  new FileReporter().report(path)
         then:
-            report.equals("{others:[foo.txt],corrupts:[],alone:[left:[003], right:[004]],different:[002],correct:[001,005]}")
-    }
-
-    def "CreateReport"() {
-
+            report.equals("{ pairs: [{left: left_001.png,left_005.png, right: right_001.png, right_005.png}]," +
+                            "failed_pairs: [{error: 'size mismatch', left: left_002.png right: right_002.png}," +
+                                            "{error: 'cannor read', left: NONE, right: NONE}]," +
+                            "orphans: [left_003.png]," +
+                            "ignored: [foo.txt]}")
     }
 
     def "SeparateAndOrderThem for Correct pair"() {
@@ -21,11 +21,11 @@ class FileReporterTest extends Specification {
         when :
             Map<String,Reporter> map =  new FileReporter().separateAndOrderThem(filesFromList);
         then:
-            map.get('others').getReport().equals('[foo.txt]')
-            map.get('corrupts').getReport().equals('[]')
-            map.get('alone').getReport().equals('[left:[003], right:[004]]')
-            map.get('different').getReport().equals('[002]')
-            map.get('correct').getReport().equals('[001,005]')
+            map.get('ignored').getReport().equals("[foo.txt]")
+            map.get('corrupts').getReport().equals("[{error: 'size mismatch', left: left_002.png right: right_002.png}," +
+                    "{error: 'cannor read', left: NONE, right: NONE}],")
+            map.get('orphans').getReport().equals("[left_003.png]" )
+            map.get('pairs').getReport().equals("[{left: left_001.png,left_005.png, right: right_001.png, right_005.png}]" )
 
     }
 

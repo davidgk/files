@@ -10,31 +10,35 @@ class WrappersContainerTest extends Specification {
         when:
             LinkedHashMap<String, Reporter> map = container.orderThem()
         then:
-            map.get('others').getReport().equals('[foo.txt]')
-            map.get('corrupts').getReport().equals('[]')
-            map.get('alone').getReport().equals('[left:[003], right:[004]]')
-            map.get('different').getReport().equals('[002]')
-            map.get('correct').getReport().equals('[001,005]')
+            map.get('ignored').getReport().equals("[foo.txt]")
+            map.get('failed_pairs').getReport().equals("[{error: 'size mismatch', left: left_002.png right: right_002.png}," +
+                    "{error: 'cannor read', left: NONE, right: NONE}]")
+            map.get('orphans').getReport().equals("[left_003.png]" )
+            map.get('pairs').getReport().equals("[{left: left_001.png,left_005.png, right: right_001.png, right_005.png}]" )
     }
 
-    def "for corrupts"() {
+
+    def 'for Ignored'() {
+        given:
+        def container = WrappersContainer.create(filesFromList)
+        when:
+        Reporter reporter = container.getIgnored()
+        then:
+        reporter.getReport().equals('[foo.txt]')
+
+    }
+
+    def "for Failed Pairs"() {
         given:
             def container = WrappersContainer.create(filesFromList)
         when:
-            Reporter reporter = container.getCorruptNames()
+            Reporter reporter = container.getFailedPairs()
         then:
-            reporter.getReport().equals('[]')
+            reporter.getReport().equals('[{error: \'size mismatch\', left: left_002.png right: right_002.png},' +
+                                       "{error: \'cannor read\', left: NONE, right: NONE}]')")
     }
 
-    def "for others"() {
-        given:
-            def container = WrappersContainer.create(filesFromList)
-        when:
-            Reporter reporter = container.getOthers()
-        then:
-            reporter.getReport().equals('[foo.txt]')
 
-    }
 
     def "for alones"() {
         given:
