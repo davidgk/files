@@ -6,7 +6,7 @@ class FileReporter {
         createReport(filesOrdered);
     }
 
-    String createReport(Map<String, Reporter> stringListMap) {
+    protected String createReport(Map<String, Reporter> stringListMap) {
         def messageFinal = []
         stringListMap.forEach{ key, value ->
             StringBuilder message = new StringBuilder(key)
@@ -17,13 +17,13 @@ class FileReporter {
         return "{"+String.join(",", messageFinal)+"}"
     }
 
-    Map<String,Reporter> separateAndOrderThem(List<File> files) {
+    protected Map<String,Reporter> separateAndOrderThem(List<File> files) {
         WrappersContainer container = WrappersContainer.create(files.collect {FileWrapper.create(it)})
         return container.orderThem()
     }
 
 
-    List<File> getFilesFromList(String path) {
+    protected List<File> getFilesFromList(String path) {
         List filesNames = []
         final file  = new File(path)
         if (file.isDirectory()){
