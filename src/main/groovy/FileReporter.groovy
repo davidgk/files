@@ -6,15 +6,18 @@ class FileReporter {
         createReport(filesOrdered);
     }
 
-    protected String createReport(Map<String, Reporter> stringListMap) {
-        def messageFinal = []
-        stringListMap.forEach{ key, value ->
-            StringBuilder message = new StringBuilder(key)
-            message.append(":")
-            message.append(value.getReport())
-            messageFinal.add(message.toString())
-        }
-        return "{"+String.join(",", messageFinal)+"}"
+    protected String createReport(Map<String, Reporter> map) {
+        StringBuilder message = new StringBuilder("{")
+            getMessageFor("pairs", message, map).append(",")
+            getMessageFor("failed_pairs", message,map).append(",")
+            getMessageFor("orphans", message,map).append(",")
+            getMessageFor("ignored", message,map).append("}")
+        return message.toString()
+    }
+
+    private StringBuilder getMessageFor(String key, StringBuilder builder,Map<String, Reporter> map) {
+        builder.append(key).append(":").append(map.get(key).getReport())
+        builder
     }
 
     protected Map<String,Reporter> separateAndOrderThem(List<File> files) {

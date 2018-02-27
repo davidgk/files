@@ -29,30 +29,19 @@ class FileWrapper {
             def codeAndKind = name[1].split("\\.")
             this.code = codeAndKind[0];
             this.kind = codeAndKind[1];
-            this.isReadable = isReadableFile()
-            configureDimentions()
+            checkDimensions()
         }
     }
 
-    def configureDimentions() {
-        BufferedImage bimg = ImageIO.read(this.file)
-        this.width          = bimg.getWidth()
-        this.height         = bimg.getHeight()
-    }
-
-    private isReadableFile() {
-        if (!file.exists())
-            return false
-        if (!file.canRead())
-            return false
+    def checkDimensions() {
         try {
-            FileReader fileReader = new FileReader(file.getAbsolutePath());
-            fileReader.read();
-            fileReader.close();
-        } catch (Exception e) {
-            return false
+            BufferedImage bimg = ImageIO.read(this.file)
+            this.width          = bimg.getWidth()
+            this.height         = bimg.getHeight()
+            this.isReadable = true;
+        } catch (e) {
+            this.isReadable = false;
         }
-        return true
     }
 
     def isDifferent(FileWrapper wrapper){

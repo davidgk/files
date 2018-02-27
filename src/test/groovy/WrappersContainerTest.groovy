@@ -11,12 +11,31 @@ class WrappersContainerTest extends Specification {
             LinkedHashMap<String, Reporter> map = container.orderThem()
         then:
             map.get('ignored').getReport().equals("[foo.txt]")
-            map.get('failed_pairs').getReport().equals("[{error: 'size mismatch', left: left_002.png right: right_002.png}," +
-                    "{error: 'cannor read', left: NONE, right: NONE}]")
-            map.get('orphans').getReport().equals("[left_003.png]" )
-            map.get('pairs').getReport().equals("[{left: left_001.png,left_005.png, right: right_001.png, right_005.png}]" )
+            map.get('failed_pairs').getReport().equals("[{error:'size mismatch',left:[left_002.png],right:[right_002.png]},{error:'cannot read',left:[left_006.png],right:[right_006.png]}]")
+            map.get('orphans').getReport().equals('[left:[left_003.png],right:[right_004.png]]')
+            map.get('pairs').getReport().equals("[left:[left_001.png,left_005.png],right:[right_001.png,right_005.png]]" )
     }
 
+    def "for Pairs"() {
+        given:
+        def container = WrappersContainer.create(filesFromList)
+        when:
+        Reporter reporter = container.getPairs()
+        then:
+        reporter.getReport().equals('[left:[left_001.png,left_005.png],right:[right_001.png,right_005.png]]')
+
+    }
+
+
+    def "for orphans"() {
+        given:
+        def container = WrappersContainer.create(filesFromList)
+        when:
+        Reporter reporter = container.getOrphans()
+        then:
+        reporter.getReport().equals('[left:[left_003.png],right:[right_004.png]]')
+
+    }
 
     def 'for Ignored'() {
         given:
@@ -34,43 +53,25 @@ class WrappersContainerTest extends Specification {
         when:
             Reporter reporter = container.getFailedPairs()
         then:
-            reporter.getReport().equals('[{error: \'size mismatch\', left: left_002.png right: right_002.png},' +
-                                       "{error: \'cannor read\', left: NONE, right: NONE}]')")
+            reporter.getReport().equals("[{error:'size mismatch',left:[left_002.png],right:[right_002.png]},{error:'cannot read',left:[left_006.png],right:[right_006.png]}]")
     }
 
-
-
-    def "for alones"() {
-        given:
-            def container = WrappersContainer.create(filesFromList)
-            container.separateElectablesLeftFromRights()
-        when:
-            Reporter reporter = container.getAlones()
-        then:
-            reporter.getReport().equals('[left:[003], right:[004]]')
-
-    }
-
-    def "for different"() {
-        given:
-            def container = WrappersContainer.create(filesFromList)
-            container.separateElectablesLeftFromRights()
-        when:
-            Reporter reporter = container.getDiferents()
-        then:
-            reporter.getReport().equals('[002]')
-
-    }
-
-    def "for Correct"() {
+    def "for Failed Pairs cannot Read "() {
         given:
         def container = WrappersContainer.create(filesFromList)
-        container.separateElectablesLeftFromRights()
         when:
-        Reporter reporter = container.getCorrects()
+        String result = container.getErrorForCannotRead()
         then:
-        reporter.getReport().equals('[001,005]')
+        result.equals('{error:\'cannot read\',left:[left_006.png],right:[right_006.png]}')
+    }
 
+    def "for Failed Pairs size Mismatch "() {
+        given:
+        def container = WrappersContainer.create(filesFromList)
+        when:
+            String result = container.getErrorForSizeDifferences()
+        then:
+            result.equals('{error:\'size mismatch\',left:[left_002.png],right:[right_002.png]}')
     }
 
 }

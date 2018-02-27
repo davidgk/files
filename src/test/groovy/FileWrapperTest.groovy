@@ -41,6 +41,17 @@ class FileWrapperTest extends Specification {
             !wrapper.isElectable
     }
 
+    def "Create for one file that is electable and not Readable"() {
+        given:
+        File file = new File("./src/test/resources/left_006.png");
+        when:
+            FileWrapper wrapper = FileWrapper.create(file)
+        then:
+            wrapper.isElectable
+        and:
+            !wrapper.isReadable
+    }
+
     def "Create for one file that is electable with name like 001_left.txt"() {
         given:
         def filename = "001_left.txt";
