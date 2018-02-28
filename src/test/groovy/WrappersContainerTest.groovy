@@ -1,10 +1,11 @@
+import model.FileLoader
 import model.FileWrapper
 import reporter.Reporter
 import spock.lang.Specification
 
 class WrappersContainerTest extends Specification {
     def path = "./src/test/resources"
-    List<FileWrapper> filesFromList =  new MainFileReporter().getFilesFromList(path).collect { it ->FileWrapper.create(it)}
+    def filesFromList =  new FileLoader(path).loadFiles()
 
     def complete() {
         given:

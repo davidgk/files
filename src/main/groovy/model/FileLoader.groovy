@@ -15,40 +15,28 @@ class FileLoader {
         List<File> files = getFilesFromList()
         files.forEach {file ->
             if (analize(file)){
-                loadIntoMap(model.FileLoader.Valid, {completeValidFilesAttrites(file)})
+                loadIntoMap(model.FileLoader.Valid, {ValidFileWrapper.create(file)})
             } else {
-                loadIntoMap(file, model.FileLoader.Invalid, {createInvalidFileWrapper(file)})
+                loadIntoMap(model.FileLoader.Invalid, {new InvalidFileWrapper(file)})
             }
         }
         this.separateThings
     }
 
-    def loadIntoMap(String  key, action ) {
-        loadMap( key, action())
-    }
-
-    def loadMap(String key, FileWrapper fileWrapper) {
+    protected def loadIntoMap(String  key, action ) {
         if (this.separateThings.containsKey(key)){
-            this.separateThings.get(key).add(fileWrapper)
+            this.separateThings.get(key).add(action())
         } else {
-            this.separateThings.put(key, [fileWrapper])
+            this.separateThings.put(key, [action()])
         }
     }
 
-    List<FileWrapper> createInvalidFileWrapper(File file) {
-        return  new InvalidFileWrapper(file)
-    }
-
-    def analize(file) {
+    private boolean analize(file) {
         String nameFile = file.name;
         String regex = "^(right|left)_\\d+.png\$"
         return  nameFile.matches(regex)
     }
 
-
-    FileWrapper completeValidFilesAttrites(file){
-        return ValidFileWrapper.create(file)
-    }
 
     protected List<File> getFilesFromList() {
         List filesNames = []

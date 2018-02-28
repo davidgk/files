@@ -1,3 +1,4 @@
+import model.FileLoader
 import reporter.Reporter
 import spock.lang.Specification
 
@@ -14,9 +15,9 @@ class FileReporterTest extends Specification {
 
     def "SeparateAndOrderThem for Correct pair"() {
         given:
-            List<File> filesFromList =  new MainFileReporter().getFilesFromList("./src/test/resources")
+            def filesFromList = new FileLoader("./src/test/resources").loadFiles()
         when :
-            Map<String,Reporter> map =  new MainFileReporter().separateAndOrderThem(filesFromList);
+            Map<String,Reporter> map =  new MainFileReporter().separateAndOrderThem(filesFromList)
         then:
             map.get('ignored').getReport().equals("[foo.txt]")
             map.get('failed_pairs').getReport().equals("[{error:'size mismatch',left:[left_002.png],right:[right_002.png]},{error:'cannot read',left:[left_006.png],right:[right_006.png]}]")
@@ -25,33 +26,4 @@ class FileReporterTest extends Specification {
 
     }
 
-    def "GetFilesFromList for a bunch"() {
-        given:
-            def path = "./src/test/resources"
-        when:
-            List<File> filesFromList =  new MainFileReporter().getFilesFromList(path)
-        then:
-            filesFromList.contains(new File("./src/test/resources/left_001.png"))
-            filesFromList.contains(new File("./src/test/resources/left_002.png"))
-            filesFromList.contains(new File("./src/test/resources/left_003.png"))
-            filesFromList.contains(new File("./src/test/resources/left_005.png"))
-            filesFromList.contains(new File("./src/test/resources/left_006.png"))
-            filesFromList.contains(new File("./src/test/resources/right_001.png"))
-            filesFromList.contains(new File("./src/test/resources/right_002.png"))
-            filesFromList.contains(new File("./src/test/resources/right_004.png"))
-            filesFromList.contains(new File("./src/test/resources/right_005.png"))
-            filesFromList.contains(new File("./src/test/resources/right_006.png"))
-            filesFromList.contains(new File("./src/test/resources/foo.txt"))
-    }
-
-    def "GetFilesFromList for a single"() {
-        given:
-            def path = "./src/test/resources/left_001.png"
-        when:
-            List<File> filesFromList =  new MainFileReporter().getFilesFromList(path)
-        then:
-            filesFromList.contains(new File("./src/test/resources/left_001.png"))
-
-
-    }
 }
