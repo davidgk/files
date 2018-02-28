@@ -1,8 +1,10 @@
+import model.FileWrapper
+import reporter.Reporter
 import spock.lang.Specification
 
 class WrappersContainerTest extends Specification {
     def path = "./src/test/resources"
-    List<FileWrapper>  filesFromList =  new FileReporter().getFilesFromList(path).collect {it ->FileWrapper.create(it)}
+    List<FileWrapper> filesFromList =  new FileReporter().getFilesFromList(path).collect { it ->FileWrapper.create(it)}
 
     def complete() {
         given:
@@ -18,12 +20,11 @@ class WrappersContainerTest extends Specification {
 
     def "for Pairs"() {
         given:
-        def container = WrappersContainer.create(filesFromList)
+            def container = WrappersContainer.create(filesFromList)
         when:
-        Reporter reporter = container.getPairs()
+            Reporter result = container.getPairs()
         then:
-        reporter.getReport().equals('[left:[left_001.png,left_005.png],right:[right_001.png,right_005.png]]')
-
+            result.report.equals("[left:[left_001.png,left_005.png],right:[right_001.png,right_005.png]]")
     }
 
 
@@ -58,20 +59,23 @@ class WrappersContainerTest extends Specification {
 
     def "for Failed Pairs cannot Read "() {
         given:
-        def container = WrappersContainer.create(filesFromList)
+            def container = WrappersContainer.create(filesFromList)
         when:
-        String result = container.getErrorForCannotRead()
+            List<FileWrapper> result = container.getErrorForCannotRead()
         then:
-        result.equals('{error:\'cannot read\',left:[left_006.png],right:[right_006.png]}')
+            result.size() == 1
+            result.find{it ->it.code.equals('006')} != null
+
     }
 
     def "for Failed Pairs size Mismatch "() {
         given:
-        def container = WrappersContainer.create(filesFromList)
+            def container = WrappersContainer.create(filesFromList)
         when:
-            String result = container.getErrorForSizeDifferences()
+            List<FileWrapper> result = container.getErrorForSizeDifferences()
         then:
-            result.equals('{error:\'size mismatch\',left:[left_002.png],right:[right_002.png]}')
+            result.size() == 1
+            result.find{it ->it.code.equals('002')} != null
     }
 
 }

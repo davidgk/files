@@ -1,3 +1,6 @@
+import model.FileWrapper
+import reporter.Reporter
+
 class FileReporter {
 
     String report(String path) {

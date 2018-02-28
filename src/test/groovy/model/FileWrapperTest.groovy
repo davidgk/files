@@ -1,3 +1,6 @@
+package model
+
+import model.FileWrapper
 import spock.lang.Specification
 
 class FileWrapperTest extends Specification {

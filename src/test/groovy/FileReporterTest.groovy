@@ -1,3 +1,4 @@
+import reporter.Reporter
 import spock.lang.Specification
 
 class FileReporterTest extends Specification {
@@ -34,10 +35,12 @@ class FileReporterTest extends Specification {
             filesFromList.contains(new File("./src/test/resources/left_002.png"))
             filesFromList.contains(new File("./src/test/resources/left_003.png"))
             filesFromList.contains(new File("./src/test/resources/left_005.png"))
+            filesFromList.contains(new File("./src/test/resources/left_006.png"))
             filesFromList.contains(new File("./src/test/resources/right_001.png"))
             filesFromList.contains(new File("./src/test/resources/right_002.png"))
             filesFromList.contains(new File("./src/test/resources/right_004.png"))
             filesFromList.contains(new File("./src/test/resources/right_005.png"))
+            filesFromList.contains(new File("./src/test/resources/right_006.png"))
             filesFromList.contains(new File("./src/test/resources/foo.txt"))
     }
 

@@ -1,3 +1,9 @@
+import model.FileWrapper
+import reporter.DefaultReporter
+import reporter.FailReporter
+import reporter.CommonLeftAndRightReporter
+import reporter.Reporter
+
 class WrappersContainer {
     List<FileWrapper> fileWrappers
     List<FileWrapper> rights
@@ -31,71 +37,42 @@ class WrappersContainer {
 
     }
 
-
-    protected Reporter getPairs() {
-        def content = checkForDifferent(existsInBoth(),{
-            wrapper -> ! (lefts.find {it.code.equals(wrapper.code)})
-                            .isDifferent(
-                        (rights.find {it.code.equals(wrapper.code)})) && wrapper.isReadable})
-        def codes = content.collect{"${it.code}-.${it.kind}"}.collect()
-        return [getReport:{"[left:["+ prepareFileName( codes, "left")+"],"+
-                "right:["+prepareFileName( codes, "right")+"]]" }] as Reporter
-
-        return prepareCommonReport(content)
-    }
-
     protected Reporter getIgnored() {
         def result = fileWrappers.stream().filter { !it.isElectable }.collect { it.file.name }
-        return [getReport:{ "["+String.join(",",result)+"]"}] as Reporter
+        return DefaultReporter.create(result)
 
+    }
+
+    protected Reporter getOrphans() {
+        return CommonLeftAndRightReporter.create(leftsNotExistsOnRights, rightsNotExistsOnLefts)
     }
 
     protected Reporter getFailedPairs() {
         def errorForSizeMisMatch = getErrorForSizeDifferences()
         def errorForCorrupt = getErrorForCannotRead()
-        return [getReport:{ "["+errorForSizeMisMatch+","+errorForCorrupt+"]"}] as Reporter
+        def reportMismatch = FailReporter.create("size mismatch", errorForSizeMisMatch).report
+        def reportCannotRead = FailReporter.create("cannot read", errorForCorrupt).report
+        return [getReport:{"["+ reportMismatch+","+ reportCannotRead+"]"}] as Reporter
+    }
+
+    protected Reporter getPairs() {
+        def different = checkForDifferent(existsInBoth(), {
+            wrapper ->
+                !(lefts.find { it.code.equals(wrapper.code) })
+                        .isDifferent(
+                        (rights.find { it.code.equals(wrapper.code) })) && wrapper.isReadable
+        })
+        return CommonLeftAndRightReporter.createFromOnlyOneList(different)
     }
 
     def getErrorForSizeDifferences() {
-        List<FileWrapper> content = checkForDifferent(existsInBoth(),{ wrapper ->lefts.find {it.code.equals(wrapper.code)}
+        return checkForDifferent(existsInBoth(),{ wrapper ->lefts.find {it.code.equals(wrapper.code)}
                 .isDifferent(
                 rights.find {it.code.equals(wrapper.code)})})
-        return prepareCommonErrorReport(content, "size mismatch")
     }
 
-    protected String getErrorForCannotRead() {
-        def result = fileWrappers.stream().filter { it.isElectable && !it.isReadable }.collect()
-        return prepareCommonErrorReport(result, "cannot read")
-    }
-
-    protected Reporter getOrphans() {
-        def codesForLefts = leftsNotExistsOnRights.collect{"${it.code}-.${it.kind}"}.collect()
-        def codesForRight = rightsNotExistsOnLefts.collect{"${it.code}-.${it.kind}"}.collect()
-        return [getReport:{"[left:["+ prepareFileName( codesForLefts, "left")+"],"+
-                "right:["+prepareFileName( codesForRight, "right")+"]]" }] as Reporter
-    }
-
-    private String prepareCommonErrorReport(List<FileWrapper> content, message) {
-        def codes = content.collect{"${it.code}-.${it.kind}"}
-        return "{error:'"+message+"'" +
-                ",left:["+ prepareFileName( codes, "left")+"],"+
-                "right:["+prepareFileName( codes, "right")+"]}"
-    }
-
-    private String prepareFileName( List<String> codes, String fileHandType) {
-        return String.join(','
-                , codes.collect{
-                    return getFileName(it, fileHandType)
-                })
-    }
-
-    private GString getFileName(String it, String fileHandType) {
-        String[] vals = it.split("-")
-        return "${fileHandType}_${vals[0]}${vals[1]}"
-    }
-
-    private Reporter prepareCommonReport(content) {
-        [getReport: { "[" + String.join(",", content) + "]" }] as Reporter
+    protected List<FileWrapper> getErrorForCannotRead() {
+        return  fileWrappers.stream().filter { it.isElectable && !it.isReadable }.collect()
     }
 
     private List<FileWrapper> existsInBoth() {
