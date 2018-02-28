@@ -1,11 +1,12 @@
 import model.FileLoader
+import model.FileSpecification
 import model.FileWrapper
 import reporter.Reporter
 
 class MainFileReporter {
 
-    String report(String path) {
-        def mapFiles = new FileLoader(path).loadFiles()
+    String report(FileSpecification specification) {
+        def mapFiles = new FileLoader(specification).loadFiles()
         Map<String,Reporter> filesOrdered = separateAndOrderThem(mapFiles )
         createReport(filesOrdered);
     }

@@ -3,6 +3,7 @@ package reporter
 abstract class Reporter {
     String report
 
+
     abstract createReport();
 
 

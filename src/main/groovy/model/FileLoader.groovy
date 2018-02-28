@@ -6,16 +6,17 @@ class FileLoader {
     protected static String Valid ="valid";
     protected static String Invalid ="invalid";
     Map<String,List<FileWrapper>> separateThings = [:]
+    FileSpecification specification
 
-    FileLoader(path){
-        this.path = path
+    FileLoader(FileSpecification specification){
+        this.specification = specification
     }
 
      Map loadFiles(){
         List<File> files = getFilesFromList()
         files.forEach {file ->
             if (analize(file)){
-                loadIntoMap(model.FileLoader.Valid, {ValidFileWrapper.create(file)})
+                loadIntoMap(model.FileLoader.Valid, {new ValidFileWrapper(file, specification)})
             } else {
                 loadIntoMap(model.FileLoader.Invalid, {new InvalidFileWrapper(file)})
             }
@@ -33,14 +34,14 @@ class FileLoader {
 
     private boolean analize(file) {
         String nameFile = file.name;
-        String regex = "^(right|left)_\\d+.png\$"
+        String regex = specification.createRegexForAllowed()
         return  nameFile.matches(regex)
     }
 
 
     protected List<File> getFilesFromList() {
         List filesNames = []
-        final file  = new File(path)
+        final file  = new File(specification.path)
         if (file.isDirectory()){
             return Arrays.asList(file.listFiles())
         }

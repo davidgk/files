@@ -4,25 +4,29 @@ import javax.imageio.ImageIO
 import java.awt.image.BufferedImage
 
 class ValidFileWrapper extends FileWrapper{
-    boolean isRight;
+    boolean isDivisionA;
     boolean isReadable;
     String code
     String kind
     int width
     int height
 
-    static FileWrapper create(File file) {
-        def name = file.name.split("_")
-        def isRight ="right".equals(name[0])
-        def codeAndKind = name[1].split("\\.")
-        def code = codeAndKind[0];
-        def kind = codeAndKind[1];
-        return new ValidFileWrapper(isRight,code, kind, file)
+    Boolean getElectableFromName(String[] name, FileSpecification fileSpecification) {
+        def mainElectableName = (fileSpecification.isFirstPartElectable())?name[0]:name[1].split("\\.")[0]
+        mainElectableName.equals(fileSpecification.divisionPartA)
     }
-    ValidFileWrapper(isRight,code, kind, file){
-        this.isRight = isRight
-        this.code = code
-        this.kind = kind
+
+    String getCodeFromName(String[] name, FileSpecification fileSpecification) {
+        def valueToGetCode = (fileSpecification.isFirstPartElectable()) ? name[1].split("\\.")[0] : name[0]
+        return valueToGetCode
+    }
+
+    ValidFileWrapper(file, specification){
+        def name = file.name.split(specification.getSeparator())
+        this.isDivisionA =this.getElectableFromName(name, specification)
+        def codeAndKind = file.name.split("\\.")
+        this.kind = codeAndKind[1]
+        this.code= this.getCodeFromName(name, specification)
         this.file = file
         checkDimensions()
     }

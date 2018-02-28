@@ -7,10 +7,10 @@ import reporter.Reporter
 
 class WrappersContainer {
     Map<String, List<FileWrapper>> fileWrappers
-    List<ValidFileWrapper> rights
-    List<ValidFileWrapper> lefts
-    List<ValidFileWrapper> rightsNotExistsOnLefts
-    List<ValidFileWrapper> leftsNotExistsOnRights
+    List<ValidFileWrapper> divisionBFiles
+    List<ValidFileWrapper> divisionAFiles
+    List<ValidFileWrapper> divisionBFilesNotExistsOnDivisionAFiles
+    List<ValidFileWrapper> divisionAFilesNotExistsOnDivisionBFiles
 
     static WrappersContainer create(Map<String, List<FileWrapper>> filesWrappers) {
         WrappersContainer container = new WrappersContainer();
@@ -21,10 +21,10 @@ class WrappersContainer {
 
     private void separateElectablesLeftFromRights() {
         List<ValidFileWrapper> valids = fileWrappers.get("valid");
-        rights = valids.stream().filter {it.isRight}.collect()
-        lefts =  valids.stream().filter { !it.isRight}.collect()
-        rightsNotExistsOnLefts = rights.stream().filter{!lefts.collect{it.code}.contains(it.code)}.collect()
-        leftsNotExistsOnRights = lefts.stream().filter{!rights.collect{it.code}.contains(it.code)}.collect()
+        divisionBFiles = valids.stream().filter {!it.isDivisionA}.collect()
+        divisionAFiles =  valids.stream().filter {it.isDivisionA}.collect()
+        divisionBFilesNotExistsOnDivisionAFiles = divisionBFiles.stream().filter{!divisionAFiles.collect{it.code}.contains(it.code)}.collect()
+        divisionAFilesNotExistsOnDivisionBFiles = divisionAFiles.stream().filter{!divisionBFiles.collect{it.code}.contains(it.code)}.collect()
     }
 
     def orderThem() {
@@ -43,7 +43,7 @@ class WrappersContainer {
     }
 
     protected Reporter getOrphans() {
-        return CommonLeftAndRightReporter.create(leftsNotExistsOnRights, rightsNotExistsOnLefts)
+        return CommonLeftAndRightReporter.create(divisionAFilesNotExistsOnDivisionBFiles, divisionBFilesNotExistsOnDivisionAFiles)
     }
 
     protected Reporter getFailedPairs() {
@@ -57,17 +57,17 @@ class WrappersContainer {
     protected Reporter getPairs() {
         def different = checkForDifferent(existsInBoth(), {
             wrapper ->
-                !(lefts.find { it.code.equals(wrapper.code) })
+                !(divisionAFiles.find { it.code.equals(wrapper.code) })
                         .isDifferent(
-                        (rights.find { it.code.equals(wrapper.code) })) && wrapper.isReadable
+                        (divisionBFiles.find { it.code.equals(wrapper.code) })) && wrapper.isReadable
         })
         return CommonLeftAndRightReporter.createFromOnlyOneList(different)
     }
 
     protected List<FileWrapper> getErrorForSizeDifferences() {
-        return checkForDifferent(existsInBoth(),{ wrapper ->lefts.find {it.code.equals(wrapper.code)}
+        return checkForDifferent(existsInBoth(),{ wrapper ->divisionAFiles.find {it.code.equals(wrapper.code)}
                 .isDifferent(
-                rights.find {it.code.equals(wrapper.code)})})
+                divisionBFiles.find {it.code.equals(wrapper.code)})})
     }
 
     protected List<FileWrapper> getErrorForCannotRead() {
@@ -76,7 +76,7 @@ class WrappersContainer {
     }
 
     private List<FileWrapper> existsInBoth() {
-        return lefts.stream().filter{!leftsNotExistsOnRights.collect {it.code}.contains(it.code)}.collect()
+        return divisionAFiles.stream().filter{!divisionAFilesNotExistsOnDivisionBFiles.collect {it.code}.contains(it.code)}.collect()
     }
 
     private List<FileWrapper> checkForDifferent(List<FileWrapper> existInBoth, condition) {
