@@ -1,12 +1,13 @@
 package reporter
 
+import model.FileSpecification
 import model.FileWrapper
+import model.ValidFileWrapper
 
 abstract class ReporterForSeparate extends Reporter{
 
-    protected static String LEFT ="left";
-    protected static String RIGHT ="right";
     Map<String,List<FileWrapper>> separateThings = [:]
+    FileSpecification specification
 
     List<String> getReportForBothHands() {
         List<String> report = []
@@ -20,7 +21,7 @@ abstract class ReporterForSeparate extends Reporter{
         return this.createDelimitedByComas(codes.collect { getFileName(it, fileHandType)})
     }
 
-    protected String getFileName(FileWrapper it, String fileHandType) {
+    protected String getFileName(ValidFileWrapper it, String fileHandType) {
         return "${fileHandType}_${it.code}.${it.kind}"
     }
 

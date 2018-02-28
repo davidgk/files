@@ -1,3 +1,4 @@
+import model.FileSpecification
 import model.FileWrapper
 import model.ValidFileWrapper
 import reporter.DefaultReporter
@@ -11,10 +12,12 @@ class WrappersContainer {
     List<ValidFileWrapper> divisionAFiles
     List<ValidFileWrapper> divisionBFilesNotExistsOnDivisionAFiles
     List<ValidFileWrapper> divisionAFilesNotExistsOnDivisionBFiles
+    FileSpecification specification
 
-    static WrappersContainer create(Map<String, List<FileWrapper>> filesWrappers) {
+    static WrappersContainer create(Map<String, List<FileWrapper>> filesWrappers, FileSpecification specification) {
         WrappersContainer container = new WrappersContainer();
         container.fileWrappers = filesWrappers;
+        container.specification = specification
         container.separateElectablesLeftFromRights()
         container
     }
@@ -43,14 +46,14 @@ class WrappersContainer {
     }
 
     protected Reporter getOrphans() {
-        return CommonLeftAndRightReporter.create(divisionAFilesNotExistsOnDivisionBFiles, divisionBFilesNotExistsOnDivisionAFiles)
+        return CommonLeftAndRightReporter.create(divisionAFilesNotExistsOnDivisionBFiles, divisionBFilesNotExistsOnDivisionAFiles, specification)
     }
 
     protected Reporter getFailedPairs() {
         def errorForSizeMisMatch = getErrorForSizeDifferences()
         def errorForCorrupt = getErrorForCannotRead()
-        def reportMismatch = FailReporter.create("size mismatch", errorForSizeMisMatch).report
-        def reportCannotRead = FailReporter.create("cannot read", errorForCorrupt).report
+        def reportMismatch = FailReporter.create("size mismatch", errorForSizeMisMatch, specification).report
+        def reportCannotRead = FailReporter.create("cannot read", errorForCorrupt, specification).report
         return [getReport:{"["+ reportMismatch+","+ reportCannotRead+"]"}] as Reporter
     }
 
@@ -61,7 +64,7 @@ class WrappersContainer {
                         .isDifferent(
                         (divisionBFiles.find { it.code.equals(wrapper.code) })) && wrapper.isReadable
         })
-        return CommonLeftAndRightReporter.createFromOnlyOneList(different)
+        return CommonLeftAndRightReporter.createFromOnlyOneList(different, specification)
     }
 
     protected List<FileWrapper> getErrorForSizeDifferences() {

@@ -7,11 +7,12 @@ import spock.lang.Specification
 
 class WrappersContainerTest extends Specification {
     def path = "./src/test/resources"
-    def filesFromList =  new FileLoader(new FileSpecification(path, new FileNameSpecification())).loadFiles()
+    FileSpecification specification = new FileSpecification("./src/test/resources", new FileNameSpecification())
+    def filesFromList =  new FileLoader(specification).loadFiles()
 
     def complete() {
         given:
-            def container = WrappersContainer.create(filesFromList)
+            def container = WrappersContainer.create(filesFromList, specification)
         when:
             LinkedHashMap<String, Reporter> map = container.orderThem()
         then:
@@ -23,7 +24,7 @@ class WrappersContainerTest extends Specification {
 
     def "for Pairs"() {
         given:
-            def container = WrappersContainer.create(filesFromList)
+            def container = WrappersContainer.create(filesFromList, specification)
         when:
             Reporter result = container.getPairs()
         then:
@@ -33,7 +34,7 @@ class WrappersContainerTest extends Specification {
 
     def "for orphans"() {
         given:
-        def container = WrappersContainer.create(filesFromList)
+        def container = WrappersContainer.create(filesFromList, specification)
         when:
         Reporter reporter = container.getOrphans()
         then:
@@ -43,7 +44,7 @@ class WrappersContainerTest extends Specification {
 
     def 'for Ignored'() {
         given:
-        def container = WrappersContainer.create(filesFromList)
+        def container = WrappersContainer.create(filesFromList, specification)
         when:
         Reporter reporter = container.getIgnored()
         then:
@@ -53,7 +54,7 @@ class WrappersContainerTest extends Specification {
 
     def "for Failed Pairs"() {
         given:
-            def container = WrappersContainer.create(filesFromList)
+            def container = WrappersContainer.create(filesFromList, specification)
         when:
             Reporter reporter = container.getFailedPairs()
         then:
@@ -62,7 +63,7 @@ class WrappersContainerTest extends Specification {
 
     def "for Failed Pairs cannot Read "() {
         given:
-            def container = WrappersContainer.create(filesFromList)
+            def container = WrappersContainer.create(filesFromList, specification)
         when:
             List<FileWrapper> result = container.getErrorForCannotRead()
         then:
@@ -73,7 +74,7 @@ class WrappersContainerTest extends Specification {
 
     def "for Failed Pairs size Mismatch "() {
         given:
-            def container = WrappersContainer.create(filesFromList)
+            def container = WrappersContainer.create(filesFromList, specification)
         when:
             List<FileWrapper> result = container.getErrorForSizeDifferences()
         then:

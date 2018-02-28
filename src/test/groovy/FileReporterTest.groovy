@@ -18,9 +18,10 @@ class FileReporterTest extends Specification {
     def "SeparateAndOrderThem for Correct pair"() {
         given:
             def path = "./src/test/resources"
-            def filesFromList =  new FileLoader(new FileSpecification(path, new FileNameSpecification())).loadFiles()
+            def specification = new FileSpecification(path, new FileNameSpecification())
+            def filesFromList =  new FileLoader(specification).loadFiles()
         when :
-            Map<String,Reporter> map =  new MainFileReporter().separateAndOrderThem(filesFromList)
+            Map<String,Reporter> map =  new MainFileReporter().separateAndOrderThem(filesFromList, specification)
         then:
             map.get('ignored').getReport().equals("[left_001.jpeg,foo.txt,right_001.jpg,left_001.jpg,0001-izquierdo.jpg,0003-derecho.jpg]")
             map.get('failed_pairs').getReport().equals("[{error:'size mismatch',left:[left_002.png],right:[right_002.png]},{error:'cannot read',left:[left_006.png],right:[right_006.png]}]")

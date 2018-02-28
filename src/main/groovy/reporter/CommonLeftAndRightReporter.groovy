@@ -1,20 +1,27 @@
 package reporter
-import model.FileWrapper
+
+import model.FileSpecification
+import model.ValidFileWrapper
 
 class CommonLeftAndRightReporter extends ReporterForSeparate{
 
-    static Reporter create(List<FileWrapper> lefts, List<FileWrapper> rights){
+    static Reporter create(List<ValidFileWrapper> oneDivision, List<ValidFileWrapper> otherDivision, FileSpecification specification){
         CommonLeftAndRightReporter report = new CommonLeftAndRightReporter()
-        report.separateThings.put(CommonLeftAndRightReporter.LEFT,lefts)
-        report.separateThings.put(CommonLeftAndRightReporter.RIGHT,rights)
+        report.specification = specification
+        def keyForOneDivision = (oneDivision[0].isDivisionA)? specification.divisionPartA: specification.divisionPartB
+        def keyForOtherDivision = (oneDivision[0].isDivisionA)? specification.divisionPartB: specification.divisionPartA
+        report.separateThings.put(keyForOneDivision,oneDivision)
+        report.separateThings.put(keyForOtherDivision,otherDivision)
         report.createReport()
         report
     }
 
-    static Reporter createFromOnlyOneList(List<FileWrapper> onceList){
+    static Reporter createFromOnlyOneList(List<ValidFileWrapper> onceList, FileSpecification specification){
         CommonLeftAndRightReporter report = new CommonLeftAndRightReporter()
-        report.separateThings.put(CommonLeftAndRightReporter.LEFT,onceList)
-        report.separateThings.put(CommonLeftAndRightReporter.RIGHT,onceList)
+        def keyForOneDivision = (onceList[0].isDivisionA)? specification.divisionPartA: specification.divisionPartB
+        def keyForOtherDivision = (keyForOneDivision.equals(specification.divisionPartA))? specification.divisionPartB: specification.divisionPartA
+        report.separateThings.put(keyForOneDivision,onceList)
+        report.separateThings.put(keyForOtherDivision,onceList)
         report.createReport()
         report
     }

@@ -7,7 +7,7 @@ class MainFileReporter {
 
     String report(FileSpecification specification) {
         def mapFiles = new FileLoader(specification).loadFiles()
-        Map<String,Reporter> filesOrdered = separateAndOrderThem(mapFiles )
+        Map<String,Reporter> filesOrdered = separateAndOrderThem(mapFiles, specification )
         createReport(filesOrdered);
     }
 
@@ -25,8 +25,8 @@ class MainFileReporter {
         builder
     }
 
-    protected Map<String,Reporter> separateAndOrderThem(Map<String, List<FileWrapper>> files) {
-        WrappersContainer container = WrappersContainer.create(files)
+    protected Map<String,Reporter> separateAndOrderThem(Map<String, List<FileWrapper>> files, specification) {
+        WrappersContainer container = WrappersContainer.create(files, specification)
         return container.orderThem()
     }
 
