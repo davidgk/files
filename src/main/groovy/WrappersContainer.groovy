@@ -1,44 +1,43 @@
 import model.FileWrapper
+import model.ValidFileWrapper
 import reporter.DefaultReporter
 import reporter.FailReporter
 import reporter.CommonLeftAndRightReporter
 import reporter.Reporter
 
 class WrappersContainer {
-    List<FileWrapper> fileWrappers
-    List<FileWrapper> rights
-    List<FileWrapper> lefts
-    List<FileWrapper> rightsNotExistsOnLefts
-    List<FileWrapper> leftsNotExistsOnRights
+    Map<String, List<FileWrapper>> fileWrappers
+    List<ValidFileWrapper> rights
+    List<ValidFileWrapper> lefts
+    List<ValidFileWrapper> rightsNotExistsOnLefts
+    List<ValidFileWrapper> leftsNotExistsOnRights
 
-    static WrappersContainer create(List<FileWrapper> fileWrappers) {
+    static WrappersContainer create(Map<String, List<FileWrapper>> filesWrappers) {
         WrappersContainer container = new WrappersContainer();
-        container.fileWrappers = fileWrappers;
+        container.fileWrappers = filesWrappers;
         container.separateElectablesLeftFromRights()
         container
+    }
+
+    private void separateElectablesLeftFromRights() {
+        List<ValidFileWrapper> valids = fileWrappers.get("valid");
+        rights = valids.stream().filter {it.isRight}.collect()
+        lefts =  valids.stream().filter { !it.isRight}.collect()
+        rightsNotExistsOnLefts = rights.stream().filter{!lefts.collect{it.code}.contains(it.code)}.collect()
+        leftsNotExistsOnRights = lefts.stream().filter{!rights.collect{it.code}.contains(it.code)}.collect()
     }
 
     def orderThem() {
         LinkedHashMap<String, Reporter> map = [:]
         map.put('ignored', getIgnored())
         map.put('failed_pairs', getFailedPairs())
-
-        separateElectablesLeftFromRights()
         map.put('orphans', getOrphans())
         map.put('pairs', getPairs())
         map
     }
 
-    def separateElectablesLeftFromRights() {
-        rights = fileWrappers.stream().filter { it.isRight && it.isElectable }.collect()
-        lefts = fileWrappers.stream().filter { !it.isRight && it.isElectable }.collect()
-        rightsNotExistsOnLefts = rights.stream().filter{!lefts.collect{it.code}.contains(it.code)}.collect()
-        leftsNotExistsOnRights = lefts.stream().filter{!rights.collect{it.code}.contains(it.code)}.collect()
-
-    }
-
     protected Reporter getIgnored() {
-        def result = fileWrappers.stream().filter { !it.isElectable }.collect { it.file.name }
+        def result = fileWrappers.get("invalid").collect { it.file.name }
         return DefaultReporter.create(result)
 
     }
@@ -65,14 +64,15 @@ class WrappersContainer {
         return CommonLeftAndRightReporter.createFromOnlyOneList(different)
     }
 
-    def getErrorForSizeDifferences() {
+    protected List<FileWrapper> getErrorForSizeDifferences() {
         return checkForDifferent(existsInBoth(),{ wrapper ->lefts.find {it.code.equals(wrapper.code)}
                 .isDifferent(
                 rights.find {it.code.equals(wrapper.code)})})
     }
 
     protected List<FileWrapper> getErrorForCannotRead() {
-        return  fileWrappers.stream().filter { it.isElectable && !it.isReadable }.collect()
+        List<ValidFileWrapper> valids = fileWrappers.get("valid")
+        return  valids.stream().filter { !it.isReadable }.collect()
     }
 
     private List<FileWrapper> existsInBoth() {

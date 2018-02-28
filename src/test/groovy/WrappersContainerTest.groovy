@@ -4,7 +4,7 @@ import spock.lang.Specification
 
 class WrappersContainerTest extends Specification {
     def path = "./src/test/resources"
-    List<FileWrapper> filesFromList =  new FileReporter().getFilesFromList(path).collect { it ->FileWrapper.create(it)}
+    List<FileWrapper> filesFromList =  new MainFileReporter().getFilesFromList(path).collect { it ->FileWrapper.create(it)}
 
     def complete() {
         given:

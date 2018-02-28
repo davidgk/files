@@ -1,11 +1,12 @@
+import model.FileLoader
 import model.FileWrapper
 import reporter.Reporter
 
-class FileReporter {
+class MainFileReporter {
 
     String report(String path) {
-        def listFiles = getFilesFromList(path)
-        Map<String,Reporter> filesOrdered = separateAndOrderThem(listFiles)
+        def mapFiles = new FileLoader(path).loadFiles()
+        Map<String,Reporter> filesOrdered = separateAndOrderThem(mapFiles )
         createReport(filesOrdered);
     }
 
@@ -23,19 +24,10 @@ class FileReporter {
         builder
     }
 
-    protected Map<String,Reporter> separateAndOrderThem(List<File> files) {
-        WrappersContainer container = WrappersContainer.create(files.collect {FileWrapper.create(it)})
+    protected Map<String,Reporter> separateAndOrderThem(Map<String, List<FileWrapper>> files) {
+        WrappersContainer container = WrappersContainer.create(files)
         return container.orderThem()
     }
 
 
-    protected List<File> getFilesFromList(String path) {
-        List filesNames = []
-        final file  = new File(path)
-        if (file.isDirectory()){
-            return Arrays.asList(file.listFiles())
-        }
-        filesNames.add(new File(file.path))
-        filesNames
-    }
 }
