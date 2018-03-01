@@ -61,6 +61,27 @@ Para el ejemplo anterior el resultado sería:
 ## Notas
 * El objetivo es catalogar los archivos. No importa que tan pesados sean ni como se van a procesar esos archivos después de ser catalogados.
 * El file system es local (no es un file system remoto, no hay fallos, reintentos, etc).
-* Puede ocurrir que al ejecutar el programa el archivo `left_1.png` esté en el directorio y el archivo `right_1.png` está en proceso de escritura. En este caso `left_1.png` se lo va a catalogar como huerfano. En una corrida posterior del programa se los considerará un par, si se cumplen todas las condiciones. 
+* Puede ocurrir que al ejecutar el programa el archivo `left_1.png` esté en el directorio y el archivo `right_1.png` está en proceso de escritura. En este caso `left_1.png` se lo va a catalogar como huerfano. En una corrida posterior del programa se los considerará un par, si se cumplen todas las condiciones.
+
+## Challenge over challenge #1
+
+Que pasaría si ahora es 001-izquierdo.jpg ?
+Que pasaria si ahora es ramon-1.png ?
+Refactorizar para cumplir con estos nuevos formatos.
+
+## Challenge over challenge #2
+
+_En algun lugar de archivo va a haber un left y un right y un numero, pero el formato no necesariamente es left_001 o 001_left_
+
+###Coooomo ?
+
+Es una posibilidad ponerle el timestamp en epoch onda left_12312312312_001.png 
+es decir, no podes asumir un pattern fijo
+para los ejemplos y tests, podes seguir usando left_001 y right_001 y viceversa
+pero tambien podria pasar
+foo_left_001, 001_left_foo, left_foo_001, left_001_foo, y todo lo que se te ocurra
+por supuesto que cuando camba el pattern, le lo van a especificar. onda primero esto _ despues tal cosa _ despues tal otra, etc
+no es que es un viva la pepa. cambia el pattern => asumis que el cliente te lo cuenta detallado, que va en cada lado, cual es el separador, etc
+esto te va a generar un quilombito lindo a nivel diseño 
 
 
