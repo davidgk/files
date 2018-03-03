@@ -11,16 +11,6 @@ class ValidFileWrapper extends FileWrapper{
     int width
     int height
 
-    Boolean getElectableFromName(String[] name, FileSpecification fileSpecification) {
-        def mainElectableName = (fileSpecification.isFirstPartElectable())?name[0]:name[1].split("\\.")[0]
-        mainElectableName.equals(fileSpecification.divisionPartA)
-    }
-
-    String getCodeFromName(String[] name, FileSpecification fileSpecification) {
-        def valueToGetCode = (fileSpecification.isFirstPartElectable()) ? name[1].split("\\.")[0] : name[0]
-        return valueToGetCode
-    }
-
     ValidFileWrapper(file, specification){
         def name = file.name.split(specification.getSeparator())
         this.isDivisionA =this.getElectableFromName(name, specification)
@@ -30,6 +20,33 @@ class ValidFileWrapper extends FileWrapper{
         this.file = file
         checkDimensions()
     }
+
+
+    Boolean getElectableFromName(String[] name, FileSpecification fileSpecification) {
+        def valToEvaluateA = name[0]
+        def valToEvaluateB = name[1].split("\\.")[0]
+        def expression = fileSpecification.getExpressionForElectableDivision()
+        if (valToEvaluateA.matches(expression))
+            return valToEvaluateA.equals(fileSpecification.divisionPartA)
+        else if (valToEvaluateB.matches(expression)) {
+            return valToEvaluateB.equals(fileSpecification.divisionPartA)
+        }
+        return false
+    }
+
+    String getCodeFromName(String[] name, FileSpecification fileSpecification) {
+        def valToEvaluateA = name[1].split("\\.")[0]
+        def valToEvaluateB = name[0]
+        def expression = fileSpecification.getExpressionForElectableDivision()
+        if (valToEvaluateA.matches(expression))
+            return valToEvaluateB
+        else if (valToEvaluateB.matches(expression)) {
+            return valToEvaluateA
+        }
+        return null
+    }
+
+
 
     def checkDimensions() {
         try {

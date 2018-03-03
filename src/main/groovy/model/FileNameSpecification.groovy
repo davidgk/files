@@ -1,10 +1,8 @@
 package model
 
-class FileNameSpecification {
+class FileNameSpecification extends AbstractFileNameSpecification{
     def initialPart
-    String separate
     def endingPart
-    def allowFormats
     def isElectablePartInit
 
     FileNameSpecification(
@@ -21,7 +19,23 @@ class FileNameSpecification {
         this.isElectablePartInit = isElectablePartInit
     }
 
-    def getElectablePart() {
-        return (isElectablePartInit)?initialPart:endingPart;
+    String createRegex() {
+        def formats= "(${String.join("|", allowFormats)})"
+        def init =  "(${String.join("|", initialPart)})"
+        def end =  "(${String.join("|", endingPart)})"
+        "^${init}${separate}${end}.${formats}\$"
+    }
+
+    def setupMainDivision(FileSpecification fileSpecification) {
+        def part = (isElectablePartInit) ? initialPart : endingPart
+        fileSpecification.divisionPartA = part[0]
+        fileSpecification.divisionPartB = part[1]
+    }
+
+    String getExpressionForElectableDivision(){
+        if (isElectablePartInit)
+            return "^("+String.join("|", this.initialPart)+")\$"
+        else
+            return "^("+String.join("|", this.endingPart)+")\$"
     }
 }
